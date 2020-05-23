@@ -35,18 +35,24 @@ app.get("/api/users", (req, res, next) => {
       });
 });
 
-app.post('/api/auth/register/', (req, res) => {
-  console.log(req);
-  const insert = 'INSERT INTO USERS (name, email, password) VALUES (?,?,?)'
-  bcrypt.hash(req.body.password, saltRounds, (err, hash) => {
-    db.run(insert, [req.body.name,req.body.email,hash],(err) => {
+app.post('/api/auth/login/',(req,res) => {
+  const sql = 'select * from users where email = ?'
+  const params = [req.body.email]
+  db.get(sql, params, (err, user) => {
+    if (err) {
+      return res.status(400).json({"error":err.message});
+    }
+    if(!user){
+      return res.json({"message": "email not found"})
+    }
+    bcrypt.compare(req.body.password, user.password, (err,result) => {
       if (err) {
         return res.status(400).json({"error":err.message});
       }
-      return res.json({
-        "message": "create User successfully",
-        "data": [req.body.name, req.body.email]
-      })
+      if (!result) {
+        return res.json({"message" : "password is not correct"})
+      }
+      return res.json({"message" : "password is correct"})
     })
   })
 })
