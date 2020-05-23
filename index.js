@@ -3,8 +3,8 @@ const app = express();
 const port = 5000;
 
 const sqlite3 = require('sqlite3').verbose();
-const bcrypt = require('bcrypt');
-const saltRounds = 1;
+// const bcrypt = require('bcrypt');
+// const saltRounds = 1;
 
 const db = new sqlite3.Database('./database/database.sqlite3',
 (err) => {
