@@ -1,10 +1,11 @@
 const express = require('express');
 const app = express();
 const port = 5000;
-
 const sqlite3 = require('sqlite3').verbose();
-// const bcrypt = require('bcrypt');
-// const saltRounds = 1;
+const bcrypt = require('bcrypt');
+const saltRounds = 10;
+
+app.use(express.json());
 
 const db = new sqlite3.Database('./database/database.sqlite3',
 (err) => {
@@ -33,5 +34,22 @@ app.get("/api/users", (req, res, next) => {
         })
       });
 });
+
+app.post('/api/auth/register/', (req, res) => {
+  console.log(req);
+  const insert = 'INSERT INTO USERS (name, email, password) VALUES (?,?,?)'
+  bcrypt.hash(req.body.password, saltRounds, (err, hash) => {
+    db.run(insert, [req.body.name,req.body.email,hash],(err) => {
+      if (err) {
+        return res.status(400).json({"error":err.message});
+      }
+      return res.json({
+        "message": "create User successfully",
+        "data": [req.body.name, req.body.email]
+      })
+    })
+  })
+})
+
 
 app.listen(port, () => console.log(`Example app listening on port ${port}!`));
