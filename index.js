@@ -21,6 +21,7 @@ const db = new sqlite3.Database('./database/database.sqlite3',
 //   db.run(insert, ["higa", "higa@example.com", hash])
 // });
 
+// ユーザー一覧取得
 app.get("/api/users", (req, res, next) => {
     const sql = "select * from users"
     const params = []
@@ -35,6 +36,23 @@ app.get("/api/users", (req, res, next) => {
       });
 });
 
+// ユーザー登録
+app.post('/api/auth/register/', (req, res) => {
+  const insert = 'INSERT INTO USERS (name, email, password) VALUES (?,?,?)'
+  bcrypt.hash(req.body.password, saltRounds, (err, hash) => {
+    db.run(insert, [req.body.name,req.body.email,hash],(err) => {
+      if (err) {
+        return res.status(400).json({"error":err.message});
+      }
+      return res.json({
+        "message": "create User successfully",
+        "data": [req.body.name, req.body.email]
+      })
+    })
+  })
+})
+
+// ユーザー認証
 app.post('/api/auth/login/',(req,res) => {
   const sql = 'select * from users where email = ?'
   const params = [req.body.email]
