@@ -20,6 +20,18 @@ const db = new sqlite3.Database('./database/database.sqlite3',
 //   db.run(insert, ["higa", "higa@example.com", hash])
 // });
 
-app.get('/', (request, response) => response.send('こんにちは！せかい！'));
+app.get("/api/users", (req, res, next) => {
+    const sql = "select * from users"
+    const params = []
+    db.all(sql, params, (err, rows) => {
+        if (err) {
+          return res.status(400).json({"error":err.message})
+        }
+        return res.json({
+            "message":"success",
+            "data":rows
+        })
+      });
+});
 
 app.listen(port, () => console.log(`Example app listening on port ${port}!`));
