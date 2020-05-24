@@ -4,6 +4,7 @@ const port = 5000;
 const sqlite3 = require('sqlite3').verbose();
 const bcrypt = require('bcrypt');
 const saltRounds = 10;
+const jwt = require('jsonwebtoken');
 
 app.use(express.json());
 
@@ -52,7 +53,7 @@ app.post('/api/auth/register/', (req, res) => {
   })
 })
 
-// ユーザー認証
+// JWTのToken発行
 app.post('/api/auth/login/',(req,res) => {
   const sql = 'select * from users where email = ?'
   const params = [req.body.email]
@@ -70,10 +71,37 @@ app.post('/api/auth/login/',(req,res) => {
       if (!result) {
         return res.json({"message" : "password is not correct"})
       }
-      return res.json({"message" : "password is correct"})
+      // return res.json({"message" : "password is correct"})
+      const payload = {
+        id: user.id,
+        name: user.name,
+        email: user.email
+      }
+      const token = jwt.sign(payload, 'secret');
+      return res.json({token});
     })
   })
 })
+
+// Token確認
+app.get('/api/auth/user/',(req,res) => {
+
+  const bearToken = req.headers['authorization']
+  console.log(bearToken);
+  const bearer = bearToken.split(' ')
+  const token = bearer[1]
+  console.log(token);
+
+  jwt.verify(token,'secret',(err,user)=>{
+    if(err){
+      return res.sendStatus(403)
+    }else{
+      return res.json({
+            user
+          });
+    }
+  })
+});
 
 
 app.listen(port, () => console.log(`Example app listening on port ${port}!`));
